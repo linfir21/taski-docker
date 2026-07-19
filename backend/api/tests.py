@@ -1,12 +1,21 @@
-from django.test import TestCase
-from api.models import Task
+from http import HTTPStatus
+
+from api import models
+from django.test import Client, TestCase
 
 
-class TaskModelTest(TestCase):
+class TaskiAPITestCase(TestCase):
+    def setUp(self):
+        self.guest_client = Client()
+
+    def test_list_exists(self):
+        """Проверка доступности списка задач."""
+        response = self.guest_client.get('/api/tasks/')
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+
     def test_task_creation(self):
-        """Простой тест: создаём задачу и проверяем строковое представление."""
-        task = Task.objects.create(
-            title='Test Task',
-            description='Test description'
-        )
-        self.assertEqual(str(task), 'Test Task')
+        """Проверка создания задачи."""
+        data = {'title': 'Test', 'description': 'Test'}
+        response = self.guest_client.post('/api/tasks/', data=data)
+        self.assertEqual(response.status_code, HTTPStatus.CREATED)
+        self.assertTrue(models.Task.objects.filter(title='Test').exists())
